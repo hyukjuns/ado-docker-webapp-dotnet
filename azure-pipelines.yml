@@ -15,6 +15,12 @@ steps:
     command: 'build'
     projects: '**/*.csproj'
     workingDirectory: './'
+- task: DotNetCoreCLI@2
+  inputs:
+    command: 'publish'
+    publishWebProjects: true
+    arguments: '--output $(Build.ArtifactStagingDirectory)'
+    workingDirectory: './'
 - task: PublishBuildArtifacts@1
   inputs:
     PathtoPublish: '$(Build.ArtifactStagingDirectory)'
