@@ -4,25 +4,55 @@
 # https://aka.ms/yaml
 
 trigger:
-- main
+  branches:
+    include:
+      - main
+  paths:
+    include:
+      - AnimalAdoption.Web.Portal
+    exclude:
+      - README.md
 
-pool:
-  vmImage: ubuntu-latest
+variables:
+  buildConfiguration: Release
+  dockerRepository: 'hyukjun/release-myaspnet'
 
-steps:
-- task: DotNetCoreCLI@2
-  inputs:
-    command: 'build'
-    projects: '**/*.csproj'
-    workingDirectory: './'
-- task: DotNetCoreCLI@2
-  inputs:
-    command: 'publish'
-    publishWebProjects: true
-    arguments: '--output $(Build.ArtifactStagingDirectory)'
-    workingDirectory: './'
-- task: PublishBuildArtifacts@1
-  inputs:
-    PathtoPublish: '$(Build.ArtifactStagingDirectory)'
-    ArtifactName: 'drop'
-    publishLocation: 'Container'
+stages:
+  - stage: Build
+    jobs:
+      - job: buildapp
+        pool:
+          vmImage: ubuntu-latest
+        steps:
+          - task: UseDotNet@2
+            displayName: Install dotnet sdk and runtime
+            inputs:
+              packageType: 'sdk'
+              version: '5.0.x'
+          - task: DotNetCoreCLI@2
+            displayName: Restore dotnet project
+            inputs:
+              command: 'restore'
+              projects: '$(System.DefaultWorkingDirectory)/AnimalAdoption.Web.Portal/AnimalAdoption.Web.Portal.csproj'
+              feedsToUse: 'select'
+              vstsFeed: '60c6bfff-09a1-4a8b-ae5d-6f2f9f254488/8d360cc7-3818-4fa0-a141-b5d3a972cc5f'
+          - task: DotNetCoreCLI@2
+            displayName: Publish dotnet project
+            inputs:
+              command: 'publish'
+              publishWebProjects: true
+              arguments: '-c $(buildConfiguration) -o ./app --no-restore'
+              zipAfterPublish: false
+              modifyOutputPath: false
+              workingDirectory: '$(System.DefaultWorkingDirectory)/AnimalAdoption.Web.Portal'
+          - task: DockerInstaller@0
+            displayName: Install docker engine
+            inputs:
+              dockerVersion: '17.09.0-ce'
+          - task: Docker@2
+            displayName: Docker Build and Push
+            inputs:
+              containerRegistry: 'dockerhub'
+              repository: '$(dockerRepository)'
+              command: 'buildAndPush'
+              Dockerfile: '$(System.DefaultWorkingDirectory)/AnimalAdoption.Web.Portal/Dockerfile'
