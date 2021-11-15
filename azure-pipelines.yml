@@ -35,7 +35,7 @@ stages:
               command: 'restore'
               projects: '$(System.DefaultWorkingDirectory)/AnimalAdoption.Web.Portal/AnimalAdoption.Web.Portal.csproj'
               feedsToUse: 'select'
-              vstsFeed: '60c6bfff-09a1-4a8b-ae5d-6f2f9f254488/8d360cc7-3818-4fa0-a141-b5d3a972cc5f'
+              vstsFeed: 'a6867725-a532-4626-b694-35a04eee7657/5ec96b74-2d86-46d7-b2b6-3432fc27ff47'
           - task: DotNetCoreCLI@2
             displayName: Publish dotnet project
             inputs:
@@ -56,3 +56,4 @@ stages:
               repository: '$(dockerRepository)'
               command: 'buildAndPush'
               Dockerfile: '$(System.DefaultWorkingDirectory)/AnimalAdoption.Web.Portal/Dockerfile'
+              tags: '$(Build.BuildNumber)'
